@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dicer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--base:#0d1022;--glass:rgba(255,255,255,.07);--glass2:rgba(255,255,255,.1);--line:rgba(255,255,255,.12);--text:#fff;--mute:#9aa3c7;--blue:#3b82f6;--red:#ef4466;--green:#22c55e;--gold:#ffd36b;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font-family:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--base);display:flex;justify-content:center;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 45% at 50% 0%,#2b3a8f 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 100% 45%,rgba(124,58,237,.35),transparent 70%),radial-gradient(ellipse 60% 35% at 0% 90%,rgba(59,130,246,.22),transparent 70%)}
+button,input{font:inherit;color:inherit}
+.app{position:relative;width:100%;max-width:430px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(130px + env(safe-area-inset-bottom,0px))}
+header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;height:48px}
+.left{display:flex;align-items:center;gap:8px;min-width:0}
+.ava{width:40px;height:40px;border-radius:50%;border:1.5px solid #5b6392;object-fit:cover;flex:none}
+.bal{height:40px;display:flex;align-items:center;gap:6px;background:var(--glass);border-radius:20px;padding:0 12px;font-weight:700;font-size:13px;border:0;white-space:nowrap}
+.bal i{color:var(--gold);font-style:normal}
+.brand{text-align:center;line-height:1}
+.brand svg{width:24px;height:24px;display:block;margin:0 auto 3px;filter:drop-shadow(0 3px 8px #3b82f688)}
+.brand b{font-size:11px;font-weight:800;letter-spacing:1px}
+.dep{justify-self:end;height:40px;display:flex;align-items:center;gap:6px;background:rgba(59,130,246,.92);border:0;border-radius:20px;padding:0 14px;font-weight:700;font-size:13px;cursor:pointer;transition:transform .12s}
+.dep:active,.bal:active{transform:scale(.95)}
+.dep svg{width:14px;height:14px;stroke:#fff;stroke-width:3;stroke-linecap:round}
+.live{margin-top:16px;display:flex;align-items:center;gap:10px;background:var(--glass);border-radius:22px;padding:8px 12px;overflow:hidden}
+.live em{flex:none;display:flex;align-items:center;gap:6px;font-style:normal;font-size:10px;font-weight:800;letter-spacing:1.6px;color:#86ff9b}
+.live em:before{content:"";width:7px;height:7px;border-radius:50%;background:#86ff9b;box-shadow:0 0 8px #86ff9b}
+.tick{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.track{display:flex;gap:8px;width:max-content;}
+.chip{flex:none;display:flex;align-items:center;gap:6px;background:var(--glass);border-radius:14px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--mute);white-space:nowrap}
+.chip b{color:#86ff9b;font-weight:700}
+@keyframes mq{to{transform:translateX(-50%)}}
+.game{margin-top:14px;background:var(--glass);border:1px solid var(--line);border-radius:28px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:210px;padding:4px;background:rgba(5,6,16,.45);border-radius:18px}
+.mode{height:32px;border:0;border-radius:14px;background:transparent;color:#fff;font-weight:700;font-size:12px;opacity:.55;cursor:pointer;transition:.2s}
+.mode.on{opacity:1;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.mode.d.on{background:var(--blue)}.mode.c.on{background:var(--red)}
+.hint{margin:10px 0 0;font-size:11px;font-weight:600;color:var(--mute);text-align:center}
+.duel{width:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:4px;margin-top:6px;position:relative}
+.side{display:flex;flex-direction:column;align-items:center;gap:4px}
+.who{font-size:11px;font-weight:700;color:var(--mute)}
+.slot{position:relative;width:128px;height:128px;border-radius:24px;transition:.3s}
+.slot:before{content:"";position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.4),transparent 70%);filter:blur(12px)}
+.lot{position:absolute;inset:0;opacity:0;transition:opacity .2s}
+.slot.ok .lot{opacity:1}
+.die{position:absolute;left:50%;top:50%;width:104px;height:104px;margin:-52px 0 0 -52px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.5));transition:opacity .2s}
+.slot.ok .die{opacity:0}
+.vs{font-size:12px;font-weight:800;color:var(--mute)}
+.slot.save{background:rgba(59,130,246,.28);box-shadow:0 0 0 2px #3b82f6,0 0 30px rgba(59,130,246,.75)}
+.star{font-style:normal;display:inline-block;line-height:1;vertical-align:middle}
+.star-img .star{font-size:0;width:16px;height:16px;background:url(images/star.png) center/contain no-repeat}
+.bal .star{width:18px;height:18px}
+.bet span.star{width:22px;height:22px;display:grid;place-items:center}
+.chip b{display:inline-flex;align-items:center;gap:4px}
+.idleimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none;pointer-events:none}
+.slot.idle.img .idleimg{display:block}
+.slot.idle.img .die{opacity:0}
+.brand img{width:28px;height:28px;object-fit:contain;display:block;margin:0 auto 3px}
+.brand img[hidden]{display:none}
+.hex{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(145deg,#7c8ff0,#3b3f9e);clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);transition:background .3s}
+.hex:before{content:"";position:absolute;inset:6px;background:linear-gradient(145deg,#2f3a7d,#1b2150);clip-path:inherit}
+.duel.cursed .hex{background:linear-gradient(145deg,#ff7a90,#a3173b)}
+.duel.cursed .hex:before{background:linear-gradient(145deg,#6b1230,#3a0a1c)}
+.pips{position:relative;width:54px;height:54px;display:grid;grid:repeat(3,1fr)/repeat(3,1fr)}
+.pips i{width:11px;height:11px;border-radius:50%;place-self:center;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.5);opacity:0}
+.pips i.p{opacity:1}
+.die.roll{animation:roll .7s ease-in-out infinite}
+@keyframes roll{0%{transform:rotate(0) scale(1)}35%{transform:rotate(130deg) scale(.86)}70%{transform:rotate(290deg) scale(1.08)}100%{transform:rotate(360deg) scale(1)}}
+.slot.win{box-shadow:0 0 0 2px var(--green),0 0 26px rgba(34,197,94,.55)}
+.slot.lose{box-shadow:0 0 0 2px var(--red),0 0 26px rgba(239,68,102,.45)}
+.res{min-height:20px;font-size:13px;font-weight:700;text-align:center}
+.res.w{color:#86ff9b}.res.l{color:#ff8da1}
+.hist{display:flex;gap:6px;margin:10px 0 14px;min-height:24px}
+.hist span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:var(--glass2);border:1.5px solid transparent}
+.hist .d{border-color:var(--mute)}.hist .w{border-color:var(--green)}.hist .l{border-color:var(--red)}
+.lbl{align-self:flex-start;font-size:11px;font-weight:700;color:var(--mute);margin:0 4px 6px}
+.bet{width:100%;height:50px;display:flex;align-items:center;gap:8px;background:rgba(5,6,16,.45);border:1px solid var(--line);border-radius:16px;padding:0 14px}
+.bet:focus-within{border-color:#6c8cff;box-shadow:0 0 0 3px rgba(99,130,255,.2)}
+.bet input{flex:1;min-width:0;background:none;border:0;outline:0;font-size:17px;font-weight:700}
+.bet input::-webkit-inner-spin-button{-webkit-appearance:none}
+.bet span{font-size:11px;font-weight:800;color:var(--gold)}
+.q{display:flex;gap:6px;width:100%;margin-top:8px}
+.q button{flex:1;min-width:0;height:32px;border:0;border-radius:11px;background:var(--glass);font-size:11px;font-weight:700;cursor:pointer}
+.q button:active{background:var(--glass2);transform:scale(.96)}
+.go{width:100%;height:54px;margin-top:14px;border:0;border-radius:18px;background:linear-gradient(180deg,#34d46f,#1fae55);color:#fff;font-weight:800;font-size:17px;letter-spacing:.4px;cursor:pointer;box-shadow:0 5px 0 #138a40,0 10px 24px rgba(34,197,94,.25);transition:.1s}
+.go:active{transform:translateY(4px);box-shadow:0 1px 0 #138a40}
+.go:disabled{opacity:.55}
+nav{position:fixed;z-index:5;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:0 16px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.bar{position:relative;pointer-events:auto;width:100%;max-width:392px;height:56px;display:grid;grid-template-columns:1fr 1fr 76px 1fr 1fr;align-items:center;justify-items:center;border-radius:999px;background-color:rgba(255,255,255,.07);background-image:linear-gradient(rgba(7,10,22,.62),rgba(7,10,22,.62));border:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:0 14px 36px rgba(0,0,0,.5)}
+.tab{height:44px;width:100%;max-width:76px;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1;text-align:center;border:0;background:none;color:rgba(255,255,255,.62);font-size:10px;font-weight:700;border-radius:999px;cursor:pointer;transition:color .2s,background-color .2s,transform .12s}
+.tab svg{width:22px;height:22px;display:block;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tab:active{color:#fff;background:rgba(255,255,255,.12);transform:scale(.95)}
+.core{justify-self:center;align-self:center;transform:translateY(-12px);width:64px;height:64px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:radial-gradient(circle at 50% 30%,#2c3d9a,#0b0e24 75%);box-shadow:0 0 0 3px #3b82f6,0 0 26px rgba(59,130,246,.55),0 10px 22px rgba(0,0,0,.5);transition:transform .12s}
+.core:active{transform:translateY(-12px) scale(.95)}
+.core:not(.on){box-shadow:0 0 0 3px rgba(59,130,246,.4),0 10px 22px rgba(0,0,0,.5);filter:saturate(.75)}
+.core img,.core svg{grid-area:1/1;display:block;margin:auto}
+.core img{width:44px;height:44px;object-fit:contain}
+.core img[hidden]{display:none}
+.core svg{width:30px;height:30px;fill:#fff}
+.upg{margin-top:14px;display:flex;flex-direction:column;gap:12px}
+.ringbox{position:relative;width:236px;height:236px;margin:2px auto 0}
+.ring{width:100%;height:100%;display:block}
+.ring .trk{fill:none;stroke:rgba(255,255,255,.1);stroke-width:14}
+.ring .arc{fill:none;stroke:#3b82f6;stroke-width:14;stroke-linecap:round;transition:stroke-dasharray .35s}
+.ring .ptr{transform-box:view-box;transform-origin:50% 50%;fill:#fff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.ringc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}
+.ringc b{font-size:38px;font-weight:800;line-height:1}
+.ringc span{font-size:12px;font-weight:700;color:var(--mute);margin-top:4px}
+.ringc.w b{color:#86ff9b}.ringc.l b{color:#ff8da1}
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:24px;padding:14px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.panel .lbl{margin-top:0}
+.mults{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.mults button{height:38px;border:0;border-radius:13px;background:var(--glass);font-weight:800;font-size:14px;cursor:pointer;transition:.15s}
+.mults button.on{background:#3b82f6}
+.mults button:active{transform:scale(.96)}
+.cat{width:100%;height:36px;margin-top:8px;border:1px dashed rgba(255,255,255,.25);border-radius:13px;background:none;font-weight:700;font-size:12px;color:var(--mute);cursor:pointer}
+.stat{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700}
+.stat + .stat{margin-top:8px}
+.stat span{color:var(--mute)}
+.upgrade-stars-slider{-webkit-appearance:none;-moz-appearance:none;appearance:none;display:block;width:100%;height:36px;background:transparent;cursor:pointer;margin:2px 0 0}
+.upgrade-stars-slider::-webkit-slider-runnable-track{height:7px;border-radius:10px;background:linear-gradient(to right,#3b82f6 var(--upgrade-stars-fill),rgba(255,255,255,.09) var(--upgrade-stars-fill))}
+.upgrade-stars-slider::-moz-range-track{height:7px;border-radius:10px;background:linear-gradient(to right,#3b82f6 var(--upgrade-stars-fill),rgba(255,255,255,.09) var(--upgrade-stars-fill))}
+.upgrade-stars-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9.5px;border-radius:50%;background:#fff}
+.upgrade-stars-slider::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:50%;background:#fff}
+.go.blue{background:linear-gradient(180deg,#4f93ff,#2f6fe0);box-shadow:0 5px 0 #1f56b8,0 10px 24px rgba(59,130,246,.3)}
+.go.blue:active{box-shadow:0 1px 0 #1f56b8}
+.tab.on{color:#3b82f6}
+.sheetbg{position:fixed;inset:0;z-index:20;background:rgba(5,6,16,.6);display:none;align-items:flex-end;justify-content:center}
+.sheetbg.show{display:flex}
+.sheet{width:100%;max-width:430px;background:#141a3a;border:1px solid var(--line);border-radius:28px 28px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.sheet h3{margin:0 0 12px;font-size:16px}
+.item{width:100%;display:flex;align-items:center;gap:12px;border:0;background:var(--glass);border-radius:16px;padding:12px;margin-bottom:8px;text-align:left;cursor:pointer}
+.item small{display:block;color:var(--mute);font-weight:600;font-size:11px}
+.item b{font-size:14px}
+.item.off{opacity:.45;cursor:default}
+.item .ic{width:40px;height:40px;border-radius:12px;background:var(--glass2);display:grid;place-items:center}
+.item .ic .star{width:22px;height:22px}
+.pcard{background:var(--glass);border:1px solid var(--line);border-radius:28px;padding:16px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.prow{display:flex;align-items:center;gap:14px}
+.pava{width:64px;height:64px;border-radius:20px;object-fit:cover;flex:none;background:var(--glass2)}
+.pinfo{min-width:0}
+.pinfo b{display:block;font-size:17px;font-weight:800}
+.pid{margin-top:6px;display:inline-flex;align-items:center;gap:5px;border:0;background:none;padding:0;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer}
+.pid svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pmet{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.05);border-radius:18px}
+.pmet div{padding:12px 14px}
+.pmet div+div{border-left:1px solid var(--line)}
+.pmet small{display:block;font-size:11px;font-weight:600;color:var(--mute)}
+.pmet b{display:block;margin-top:6px;font-size:17px;font-weight:800}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--glass);border-radius:20px}
+.seg button{height:38px;border:0;border-radius:16px;background:none;font-weight:700;font-size:13px;color:var(--mute);cursor:pointer;transition:.2s}
+.seg button.on{background:rgba(255,255,255,.14);color:#fff}
+.pmsg{min-height:18px;margin:10px 2px 0;font-size:12px;font-weight:700}
+.pmsg.w{color:#86ff9b}.pmsg.l{color:#ff8da1}
+.pcode{text-transform:uppercase;letter-spacing:1px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px}
+.hrow+.hrow{border-top:1px solid var(--line)}
+.hrow b{display:block;font-size:13px}
+.hrow small{display:block;margin-top:3px;font-size:11px;font-weight:600;color:var(--mute)}
+.hrow .d{font-weight:800;font-size:13px;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.hrow .d.p{color:#86ff9b}.hrow .d.m{color:#ff8da1}
+.hempty{text-align:center;color:var(--mute);font-size:13px;font-weight:600;padding:14px 0}
+.ava{cursor:pointer}
+.toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);background:rgba(30,34,76,.96);border:1px solid var(--line);border-radius:14px;padding:10px 16px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;z-index:10}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media(max-width:350px){.dep span{display:none}.dep{padding:0 12px}}
+@media(prefers-reduced-motion:reduce){.die.roll{animation:none}}
+/* ===== Переключатель игр, Plinko, Mines, cashback ===== */
+.cb{width:100%;margin:8px 4px 0;font-size:11px;font-weight:600;color:var(--mute);min-height:15px}
+.cb b{color:var(--gold);font-weight:800}
+.bet input:disabled{opacity:.55}
+.q.sel button.on{background:var(--blue);color:#fff}
+.q button:disabled{opacity:.5;cursor:default}
+.hist.mx{flex-wrap:wrap;justify-content:center}
+.hist.mx span{width:auto;min-width:24px;padding:0 8px;border-radius:12px;font-size:10px}
+.modes.m3{grid-template-columns:repeat(3,1fr);width:270px}
+.rk{height:32px;border:0;border-radius:14px;background:transparent;color:#fff;font-weight:700;font-size:12px;opacity:.55;cursor:pointer;transition:.2s}
+.rk.on{opacity:1;background:var(--blue);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.rk.r.on{background:var(--red)}
+.rk:disabled{cursor:default}
+.plwrap{width:100%;margin-top:8px}
+#plCv{display:block;width:100%;height:240px}
+.mn-info{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.mn-info div{background:rgba(5,6,16,.45);border-radius:14px;padding:8px 6px;text-align:center;min-width:0}
+.mn-info small{display:block;font-size:10px;font-weight:700;color:var(--mute)}
+.mn-info b{display:block;margin-top:3px;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mn-info b.g{color:#86ff9b}
+.mn-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;margin:12px 0 10px}
+.tile{aspect-ratio:1;padding:0;border:1px solid var(--line);border-radius:16px;background:var(--glass);display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.tile:disabled{cursor:default}
+.tile:not(:disabled):active{transform:scale(.93)}
+.tile svg{width:60%;height:60%;display:block}
+.tile img{width:70%;height:70%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none}
+.tile.gem{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.6)}
+.tile.dim{opacity:.45}
+.tile.bomb{background:rgba(239,68,102,.2);border-color:rgba(239,68,102,.7)}
+.tile.hit{box-shadow:0 0 0 2px var(--red),0 0 22px rgba(239,68,102,.6)}
+.tile.new svg,.tile.new img{animation:tpop .32s ease-out}
+@keyframes tpop{0%{transform:scale(.4)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.tile.new svg,.tile.new img{animation:none}}
+</style>
+</head>
+<body data-start-view="prof">
+<div class="app">
+  <header>
+    <div class="left">
+      <img class="ava" alt="Profile" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236d8cff'/%3E%3Cstop offset='1' stop-color='%238b3df0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='40' height='40' fill='url(%23g)'/%3E%3Ccircle cx='20' cy='15' r='7' fill='%23fff'/%3E%3Cpath d='M6 40c2-10 8-14 14-14s12 4 14 14z' fill='%23fff'/%3E%3C/svg%3E">
+      <button class="bal" id="balBtn" aria-label="Balance"><i class="star">★</i><b id="bal">10,000</b></button>
+    </div>
+    <div class="brand">
+      <img class="logo" src="images/logo.png" alt="Dicer" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 40 40"><path d="M10 4h20l9 16-9 16H10L1 20z" fill="#4f7df5"/><circle cx="13" cy="13" r="2.4" fill="#fff"/><circle cx="27" cy="13" r="2.4" fill="#fff"/><circle cx="20" cy="20" r="2.4" fill="#fff"/><circle cx="13" cy="27" r="2.4" fill="#fff"/><circle cx="27" cy="27" r="2.4" fill="#fff"/></svg>
+      <b>Dicer</b>
+    </div>
+    <button class="dep" id="dep" aria-label="Top up balance"><svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12"/></svg><span>Top up</span></button>
+  </header>
+
+  <div class="live" aria-label="Recent wins">
+    <em>LIVE</em>
+    <div class="tick"><div class="track" id="track"></div></div>
+  </div>
+
+  <main class="game">
+    <div class="modes">
+      <button class="mode d on" data-m="d">Default</button>
+      <button class="mode c" data-m="c">Cursed</button>
+    </div>
+    <p class="hint" id="hint" lang="ru"></p>
+    <div class="duel" id="duel">
+      <div class="side"><div class="who">You</div><div class="slot" id="s0"><div class="lot"></div><img class="idleimg" src="images/dice.png" alt="" onload="this.parentNode.classList.add('img')"><div class="die"><div class="hex"><div class="pips"></div></div></div></div></div>
+      <div class="vs">VS</div>
+      <div class="side"><div class="who">Bot</div><div class="slot" id="s1"><div class="lot"></div><img class="idleimg" src="images/dice.png" alt="" onload="this.parentNode.classList.add('img')"><div class="die"><div class="hex"><div class="pips"></div></div></div></div></div>
+    </div>
+    <div class="res" id="res">Pick a mode and roll</div>
+    <div class="hist" id="hist" aria-label="Roll history"></div>
+    <div class="lbl">Bet amount</div>
+    <div class="bet"><input id="amt" type="number" inputmode="numeric" min="1" value="100" aria-label="Bet amount"><span class="star">★</span></div>
+    <div class="q"><button data-add="100">+100</button><button data-add="500">+500</button><button data-k="half">½</button><button data-k="x2">×2</button><button data-k="max">MAX</button></div>
+    <div class="cb" data-for="amt"></div><button class="go" id="go">Dice!</button>
+  </main>
+  <section class="game" id="plView" style="display:none">
+    <div class="modes m3" id="plRisk" aria-label="Risk"><button class="rk" data-r="l">Low</button><button class="rk on" data-r="m">Medium</button><button class="rk r" data-r="h">High</button></div>
+    <p class="hint" lang="ru">Шар падает по штырям в одну из ячеек. Выигрыш — ставка × множитель</p>
+    <div class="plwrap"><canvas id="plCv" aria-label="Plinko board"></canvas></div>
+    <div class="res" id="plRes">Place a bet and drop a ball</div>
+    <div class="hist mx" id="plHist" aria-label="History"></div>
+    <div class="lbl">Rows</div>
+    <div class="q sel" id="plRows"><button data-n="8">8</button><button data-n="12" class="on">12</button><button data-n="16">16</button></div>
+    <div class="lbl" style="margin-top:12px">Bet amount</div>
+    <div class="bet"><input id="plBet" type="number" inputmode="numeric" min="1" value="100" aria-label="Bet amount"><span class="star">★</span></div>
+    <div class="q" id="plQ"><button data-qa="100">+100</button><button data-qa="500">+500</button><button data-qk="half">½</button><button data-qk="x2">×2</button><button data-qk="max">MAX</button></div>
+    <div class="cb" data-for="plBet"></div>
+    <button class="go" id="plGo">Drop!</button>
+  </section>
+  <section class="game" id="mnView" style="display:none">
+    <p class="hint" lang="ru" style="margin-top:0">Открывай клетки и обходи мины. Чем больше открыто, тем выше множитель. Забрать выигрыш можно в любой момент</p>
+    <div class="mn-info">
+      <div><small>Multiplier</small><b id="mnMult">×1.00</b></div>
+      <div><small>Next</small><b id="mnNext">—</b></div>
+      <div><small>Win</small><b id="mnWin">—</b></div>
+    </div>
+    <div class="mn-grid" id="mnGrid" aria-label="Mines board"></div>
+    <div class="res" id="mnRes">Pick the number of mines and start</div>
+    <div class="hist mx" id="mnHist" aria-label="History"></div>
+    <div class="lbl">Mines</div>
+    <div class="q sel" id="mnCount"><button data-n="1">1</button><button data-n="3" class="on">3</button><button data-n="5">5</button><button data-n="10">10</button><button data-n="24">24</button></div>
+    <div class="lbl" style="margin-top:12px">Bet amount</div>
+    <div class="bet"><input id="mnBet" type="number" inputmode="numeric" min="1" value="100" aria-label="Bet amount"><span class="star">★</span></div>
+    <div class="q" id="mnQ"><button data-qa="100">+100</button><button data-qa="500">+500</button><button data-qk="half">½</button><button data-qk="x2">×2</button><button data-qk="max">MAX</button></div>
+    <div class="cb" data-for="mnBet"></div>
+    <button class="go" id="mnGo">Start game</button>
+  </section>
+
+  <section class="upg" id="upg" style="display:none">
+    <div class="ringbox">
+      <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="trk" cx="100" cy="100" r="84"/>
+        <circle class="arc" id="uArc" cx="100" cy="100" r="84" transform="rotate(-90 100 100)" stroke-dasharray="0 528"/>
+        <g class="ptr" id="uPtr"><path d="M100 22l-9-16h18z"/></g>
+      </svg>
+      <div class="ringc" id="uRingC"><b id="uChance">—</b><span id="uSub">chance</span></div>
+    </div>
+    <div class="panel">
+      <div class="lbl">My bet</div>
+      <div class="bet"><input id="uBet" type="number" inputmode="numeric" min="1" value="100" aria-label="Bet"><span class="star">★</span></div>
+      <input class="upgrade-stars-slider" id="uSlider" type="range" min="1" max="10000" value="100" aria-label="Bet">
+      <div class="cb" data-for="uBet"></div>
+    </div>
+    <div class="panel">
+      <div class="lbl">I want to get</div>
+      <div class="mults" id="uMults"><button data-m="1.5">×1.5</button><button data-m="2">×2</button><button data-m="5">×5</button><button data-m="10">×10</button></div>
+      <div class="bet"><input id="uWant" type="number" inputmode="numeric" min="1" value="200" aria-label="Target amount"><span class="star">★</span></div>
+      <button class="cat" id="uCat">Choose from catalog</button>
+    </div>
+    <div class="panel">
+      <div class="stat"><span>Chance</span><b id="uChance2">—</b></div>
+      <div class="stat"><span>Multiplier</span><b id="uMult">—</b></div>
+    </div>
+    <button class="go blue" id="uGo">Upgrade</button>
+  </section>
+  <section class="upg" id="profView" style="display:none">
+    <div class="pcard">
+      <div class="prow">
+        <img class="pava" id="pAva" alt="Avatar">
+        <div class="pinfo"><b>Player</b><button class="pid" id="pId" aria-label="Copy ID"><span id="pIdT"></span><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
+      </div>
+      <div class="pmet"><div><small>Games played</small><b id="mGames">0</b></div><div><small>Wins</small><b id="mWins">0</b></div></div>
+    </div>
+    <div class="seg" id="pSeg"><button class="on" data-t="promo">Promo codes</button><button data-t="hist">History</button></div>
+    <div class="panel" id="tPromo">
+      <div class="lbl">Enter promo code</div>
+      <div class="bet"><input class="pcode" id="pCode" type="text" maxlength="24" autocomplete="off" autocapitalize="characters" placeholder="Promo code" aria-label="Promo code"></div>
+      <div class="pmsg" id="pMsg"></div>
+      <button class="go blue" id="pGo" style="margin-top:10px">Activate</button>
+    </div>
+    <div class="panel" id="tHist" style="display:none"><div id="hList"></div></div>
+  </section>
+</div>
+<div class="sheetbg" id="sheetbg"><div class="sheet" role="dialog" aria-label="Catalog">
+  <h3>Prize catalog</h3>
+  <button class="item" id="itStars"><span class="ic"><i class="star">★</i></span><span><b>Stars</b><small lang="ru">Введи, сколько хочешь получить, и увидишь шанс</small></span></button>
+  <div class="item off"><span class="ic">🎁</span><span><b>Gifts</b><small>Soon</small></span></div>
+</div></div>
+
+<nav>
+  <div class="bar">
+    <button class="tab" id="up" aria-label="Upgrade"><svg viewBox="0 0 24 24"><path d="M6 11l6-6 6 6M6 19l6-6 6 6"/></svg>Upgrade</button>
+    <button class="tab" id="nPl" aria-label="Plinko game"><svg viewBox="0 0 24 24"><g style="fill:currentColor;stroke:none"><circle cx="12" cy="5" r="1.7"/><circle cx="8" cy="11" r="1.7"/><circle cx="16" cy="11" r="1.7"/><circle cx="4" cy="17" r="1.7"/><circle cx="12" cy="17" r="1.7"/><circle cx="20" cy="17" r="1.7"/></g></svg>Plinko</button>
+    <button class="core on" id="core" aria-label="Dice game"><img src="images/dice.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="1.9"/><circle cx="17" cy="7" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="7" cy="17" r="1.9"/><circle cx="17" cy="17" r="1.9"/></svg></button>
+    <button class="tab" id="nMn" aria-label="Mines game"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4.8"/><path d="M12 3.5v3M12 19.5v3M2.5 13h3M18.5 13h3M5.3 6.3l2.1 2.1M18.7 6.3l-2.1 2.1M5.3 19.7l2.1-2.1M18.7 19.7l-2.1-2.1"/></svg>Mines</button>
+    <button class="tab" id="prof" aria-label="Profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-6.5 8-6.5s7 2 8 6.5"/></svg>Profile</button>
+  </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+/* Анимации: Results/result_1…6.json (Lottie) встроены в страницу как result_N */
+const resultData=n=>{try{return JSON.parse(document.getElementById("result_"+n).textContent)}catch(e){return null}};
+const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const modes={
+  d:{hint:"Брось кубы против бота: у кого больше, тот забирает банк. Победа — ×2 от ставки",win:(a,b)=>a>b},
+  c:{hint:"Cursed наоборот: побеждает тот, у кого выпало меньше. Победа — ×2 от ставки",win:(a,b)=>a<b}
+};
+const savedBalance=localStorage.getItem("dicer.balance");
+let mode="d",balance=savedBalance===null?10000:Math.max(0,Number(savedBalance)||0),busy=false,hist=[];
+const res=$("#res"),amt=$("#amt"),toast=$("#toast"),duel=$("#duel");
+const slots=[0,1].map(i=>{const el=$("#s"+i);const pips=el.querySelector(".pips");for(let k=0;k<9;k++)pips.appendChild(document.createElement("i"));return{el,pips,die:el.querySelector(".die"),lot:el.querySelector(".lot"),anim:null,iv:null}});
+const fmt=n=>Math.floor(n).toLocaleString("en-US");
+const show=(sl,n)=>[...sl.pips.children].forEach((p,i)=>p.classList.toggle("p",faces[n].includes(i)));
+const upd=()=>{localStorage.setItem("dicer.balance",String(balance));$("#bal").textContent=fmt(balance);if(window.uSliderSync)uSliderSync()};
+const ST='<i class="star">★</i>';
+function say(t){toast.innerHTML=t;toast.classList.add("show");clearTimeout(say.t);say.t=setTimeout(()=>toast.classList.remove("show"),1900)}
+function renderHist(){$("#hist").innerHTML=hist.map(h=>`<span class="${h.d?"d":h.w?"w":"l"}">${h.a}</span>`).join("")}
+function setMode(m){mode=m;document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("on",b.dataset.m===m));$("#hint").textContent=modes[m].hint;duel.classList.toggle("cursed",m==="c");slots.forEach(s=>s.el.classList.remove("win","lose"))}
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>!busy&&setMode(b.dataset.m));
+document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>amt.value=Math.max(1,(+amt.value||0)+ +b.dataset.add));
+document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const v=+amt.value||0,k=b.dataset.k;amt.value=k==="half"?Math.max(1,Math.floor(v/2)):k==="x2"?Math.max(1,v*2):Math.max(1,balance)});
+$("#prof").onclick=()=>location.href="profile.html";
+$("#balBtn").onclick=$("#dep").onclick=()=>{balance+=5000;upd();say("Demo top-up: +5,000 "+ST)};
+const names=["Alex","Mira","Dan","Kira","Leo","Nika","Tom","Eva"];
+const feedItems=[];
+function feedChip(){const v=Math.floor((Math.random()*20+1)*100);return `<div class="chip">${names[Math.floor(Math.random()*names.length)]}<b>+${fmt(v)} ${ST}</b>×2</div>`}
+function feedAdd(){feedItems.unshift(feedChip());feedItems.length=Math.min(feedItems.length,8);$("#track").innerHTML=feedItems.join("")}
+for(let k=0;k<5;k++)feedItems.push(feedChip());
+$("#track").innerHTML=feedItems.join("");
+setInterval(feedAdd,1400000); /* новый игрок в ленте раз в ~23 минуты */
+
+/* Один куб: грузим Results/result_N.json; если файла нет — запасной куб с точками */
+const NUDGE={x:0,y:0}; /* ручная подгонка в px, если нужно сдвинуть анимацию */
+function centerLot(sl,a){
+  try{
+    const svg=sl.lot.querySelector("svg"),vb=svg.viewBox.baseVal;
+    a.goToAndStop(Math.max(0,a.totalFrames-2),true);
+    const bb=svg.getBBox();
+    a.goToAndPlay(0,true);
+    if(bb.width>0&&bb.height>0){
+      const dx=vb.x+vb.width/2-(bb.x+bb.width/2),dy=vb.y+vb.height/2-(bb.y+bb.height/2),k=sl.lot.clientWidth/vb.width;
+      if(Math.abs(dx)<160&&Math.abs(dy)<160)sl.lot.style.transform="translate("+(dx*k+NUDGE.x)+"px,"+(dy*k+NUDGE.y)+"px)";
+    }
+  }catch(e){}
+}
+function rollDie(sl,n,key){
+  return new Promise(resolve=>{
+    let done=false;
+    if(sl.anim){try{sl.anim.destroy()}catch(e){}sl.anim=null}
+    sl.lot.innerHTML="";sl.lot.style.transform="";sl.el.classList.remove("ok","win","lose","save","idle");
+    sl.die.classList.add("roll");
+    clearInterval(sl.iv);sl.iv=setInterval(()=>show(sl,1+Math.floor(Math.random()*6)),90);
+    const fin=ok=>{if(done)return;done=true;clearInterval(sl.iv);sl.die.classList.remove("roll");if(!ok){sl.el.classList.remove("ok");show(sl,n)}resolve()};
+    setTimeout(()=>fin(false),6000);
+    if(!window.lottie){setTimeout(()=>fin(false),700);return}
+    try{
+      const a=lottie.loadAnimation({container:sl.lot,renderer:"svg",loop:false,autoplay:true,animationData:resultData(key||n)||resultData(n)});
+      sl.anim=a;
+      a.addEventListener("DOMLoaded",()=>{if(done)return;clearInterval(sl.iv);centerLot(sl,a);sl.el.classList.add("ok")});
+      a.addEventListener("complete",()=>fin(true));
+      a.addEventListener("data_failed",()=>setTimeout(()=>fin(false),600));
+    }catch(e){setTimeout(()=>fin(false),700)}
+  });
+}
+$("#go").onclick=async()=>{
+  if(busy)return;
+  const bet=Math.floor(+amt.value);
+  if(!bet||bet<1){say("Enter a valid bet");return}
+  if(bet>balance){say("Not enough stars");return}
+  busy=true;$("#go").disabled=true;balance-=bet;upd();
+  res.innerHTML="Rolling…";res.className="res";
+  const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6);
+  const m=modes[mode],draw=a===b,won=!draw&&m.win(a,b);
+  const save=!draw&&!won&&Math.random()<0.05; /* 5% шанс «спасения» при проигрыше */
+  await Promise.all([rollDie(slots[0],a,save?"save":a),rollDie(slots[1],b)]);
+  let cb=0;const w=won||save,score="You "+a+" : Bot "+b+". ";
+  if(draw){balance+=bet;res.innerHTML=score+"Draw, bet returned";res.className="res";say("Draw: bet returned")}
+  else if(save){balance+=bet*2;slots[0].el.classList.add("save");slots[1].el.classList.add("lose");res.innerHTML="Saved! "+score+"Win +"+fmt(bet)+" "+ST;res.className="res w";say("Saved! +"+fmt(bet)+" "+ST)}
+  else if(w){balance+=bet*2;slots[0].el.classList.add("win");slots[1].el.classList.add("lose");res.innerHTML=score+"Win +"+fmt(bet)+" "+ST;res.className="res w";say("Win: +"+fmt(bet)+" "+ST)}
+  else{cb=cashback(bet);slots[1].el.classList.add("win");slots[0].el.classList.add("lose");res.innerHTML=score+"Loss −"+fmt(bet)+" "+ST+cbTxt(cb);res.className="res l";say("Bet "+fmt(bet)+" "+ST+" lost"+(cb?", cashback +"+fmt(cb):""))}
+  hist.unshift({a,w,d:draw});rec("Dice",draw?0:w?1:-1,draw?0:w?bet:cb-bet,"You "+a+" : Bot "+b+(cb?" · cashback +"+fmt(cb):""));hist=hist.slice(0,8);renderHist();upd();
+  busy=false;$("#go").disabled=false;
+};
+/* ===== Апгрейд ===== */
+const uBet=$("#uBet"),uWant=$("#uWant"),uSlider=$("#uSlider");
+let uMult=2,uBusy=false,uRot=0;
+const CIRC=2*Math.PI*84;
+const fmtP=x=>(Math.round(x*10)/10).toString();
+/* как в upgrades.js: базовый шанс = ставка / приз × 100 (= 100/множитель), и он всегда уменьшается на 1/20 от себя (×0,95) */
+const chanceOf=m=>Math.max(1,Math.min(95,(100/m)*(1-1/20)));
+function uSliderSync(){uSlider.max=Math.max(1,balance);const v=Math.min(+uBet.value||1,balance||1);uSlider.value=v;uSlider.style.setProperty("--upgrade-stars-fill",(100*(v-1)/Math.max(1,uSlider.max-1))+"%")}
+function uCalc(){
+  const bet=+uBet.value,want=+uWant.value,ok=bet>=1&&want>bet;
+  const m=ok?want/bet:0,ch=ok?chanceOf(m):0;
+  document.querySelectorAll("#uMults button").forEach(b=>b.classList.toggle("on",ok&&Math.abs(+b.dataset.m-m)<1e-6));
+  $("#uChance").textContent=ok?fmtP(ch)+"%":"—";
+  $("#uChance2").textContent=ok?fmtP(ch)+"%":"—";
+  $("#uMult").textContent=ok?"×"+fmtP(m):"—";
+  $("#uArc").setAttribute("stroke-dasharray",(ok?CIRC*ch/100:0)+" "+CIRC);
+  $("#uSub").textContent=ok?"chance":"target must exceed bet";
+  uSliderSync();
+  return ok?{bet,want,m,ch}:null;
+}
+function uSetBet(v){uBet.value=Math.max(1,Math.floor(v));if(uMult)uWant.value=Math.floor(uBet.value*uMult);uCalc()}
+uBet.oninput=()=>{if(uMult)uWant.value=Math.floor((+uBet.value||0)*uMult);uCalc()};
+uSlider.oninput=()=>uSetBet(+uSlider.value);
+uWant.oninput=()=>{const b=+uBet.value;uMult=b>0&&+uWant.value>0?+uWant.value/b:null;uCalc()};
+document.querySelectorAll("#uMults button").forEach(b=>b.onclick=()=>{if(uBusy)return;uMult=+b.dataset.m;uWant.value=Math.floor((+uBet.value||0)*uMult);uCalc()});
+$("#uCat").onclick=()=>$("#sheetbg").classList.add("show");
+$("#sheetbg").onclick=e=>{if(e.target.id==="sheetbg")e.currentTarget.classList.remove("show")};
+$("#itStars").onclick=()=>{$("#sheetbg").classList.remove("show");uWant.focus();uWant.select()};
+$("#uGo").onclick=async()=>{
+  if(uBusy)return;
+  const c=uCalc();
+  if(!c){say("Target must be higher than the bet");return}
+  if(c.bet>balance){say("Not enough stars");return}
+  uBusy=true;$("#uGo").disabled=true;balance-=c.bet;upd();
+  const ringc=$("#uRingC");ringc.className="ringc";$("#uSub").textContent="spinning…";
+  const win=Math.random()*100<c.ch,span=c.ch*3.6;
+  const T=win?span*(.06+Math.random()*.88):span+(360-span)*(.06+Math.random()*.88);
+  uRot+=1440+(((T-uRot%360)%360)+360)%360;
+  const ptr=$("#uPtr");ptr.style.transition="transform 3.2s cubic-bezier(.12,.7,.15,1)";ptr.style.transform="rotate("+uRot+"deg)";
+  await new Promise(r=>setTimeout(r,3300));
+  if(win){balance+=c.want;rec("Upgrade",1,c.want-c.bet,"×"+fmtP(c.m)+" · target "+fmt(c.want));ringc.className="ringc w";$("#uSub").innerHTML="received +"+fmt(c.want)+" "+ST;say("Upgrade succeeded: +"+fmt(c.want)+" "+ST)}
+  else{const cb=cashback(c.bet);rec("Upgrade",-1,cb-c.bet,"×"+fmtP(c.m)+" · target "+fmt(c.want)+(cb?" · cashback +"+fmt(cb):""));ringc.className="ringc l";$("#uSub").innerHTML="failed, −"+fmt(c.bet)+" "+ST;say("Upgrade failed: −"+fmt(c.bet)+" "+ST+(cb?", cashback +"+fmt(cb):""))}
+  upd();uBusy=false;$("#uGo").disabled=false;
+};
+function showView(v){
+  const g=v==="dice"||v==="plinko"||v==="mines";
+  if(g)gameKey=v;
+  document.querySelector(".live").style.display=g?"":"none";
+  syncGame(g);syncCb();
+  $("#upg").style.display=v==="up"?"":"none";
+  $("#profView").style.display=v==="prof"?"":"none";
+  $("#up").classList.toggle("on",v==="up");
+  $("#prof").classList.toggle("on",v==="prof");
+  $("#core").classList.toggle("on",v==="dice");
+  $("#nPl").classList.toggle("on",v==="plinko");
+  $("#nMn").classList.toggle("on",v==="mines");
+  if(v==="up")uCalc();
+  if(v==="prof")pRender();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#up").onclick=()=>location.href="upgrade.html";
+$("#core").onclick=()=>location.href="index.html";$("#nPl").onclick=()=>location.href="plinko.html";$("#nMn").onclick=()=>location.href="mines.html";
+/* ===== Профиль, статистика, промокоды ===== */
+const stats={games:Number(localStorage.getItem("dicer.games"))||0,wins:Number(localStorage.getItem("dicer.wins"))||0},logs=JSON.parse(localStorage.getItem("dicer.logs")||"[]"),usedPromos=new Set(JSON.parse(localStorage.getItem("dicer.usedPromos")||"[]")),PROMOS={DEMO:15};
+const pDelta=n=>n>0?'<span class="d p">+'+fmt(n)+" "+ST+"</span>":n<0?'<span class="d m">−'+fmt(-n)+" "+ST+"</span>":'<span class="d">0</span>';
+function pRender(){
+  $("#mGames").textContent=stats.games;
+  $("#mWins").textContent=stats.wins+(stats.games?" · "+Math.round(100*stats.wins/stats.games)+"%":"");
+  $("#hList").innerHTML=logs.length?logs.map(l=>`<div class="hrow"><div><b>${l.kind}${l.r>0?" · win":l.r<0?" · loss":l.promo?"":" · draw"}</b><small>${l.note}</small></div>${pDelta(l.net)}</div>`).join(""):'<div class="hempty">No games yet</div>';
+}
+function rec(kind,r,net,note){stats.games++;if(r>0)stats.wins++;logs.unshift({kind,r,net,note});if(logs.length>30)logs.length=30;localStorage.setItem("dicer.games",String(stats.games));localStorage.setItem("dicer.wins",String(stats.wins));localStorage.setItem("dicer.logs",JSON.stringify(logs));pRender()}
+$("#pAva").src=document.querySelector(".ava").src;
+const myId=localStorage.getItem("dicer.id")||String(Math.floor(1e9+Math.random()*9e9));
+localStorage.setItem("dicer.id",myId);
+$("#pIdT").textContent="ID: "+myId;
+$("#pId").onclick=()=>{try{navigator.clipboard.writeText(myId).then(()=>say("ID copied"),()=>say("Couldn't copy"))}catch(e){say("Couldn't copy")}};
+document.querySelectorAll("#pSeg button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#pSeg button").forEach(x=>x.classList.toggle("on",x===b));$("#tPromo").style.display=b.dataset.t==="promo"?"":"none";$("#tHist").style.display=b.dataset.t==="hist"?"":"none"});
+function usePromo(){
+  const code=$("#pCode").value.trim().toUpperCase(),m=$("#pMsg");
+  if(!code){m.className="pmsg l";m.textContent="Enter a promo code";return}
+  if(!Object.prototype.hasOwnProperty.call(PROMOS,code)){m.className="pmsg l";m.textContent="Promo code not found";return}
+  if(usedPromos.has(code)){m.className="pmsg l";m.textContent="This promo code has already been used";return}
+  usedPromos.add(code);localStorage.setItem("dicer.usedPromos",JSON.stringify([...usedPromos]));balance+=PROMOS[code];upd();
+  logs.unshift({kind:"Promo code",r:0,net:PROMOS[code],note:code,promo:true});pRender();
+  m.className="pmsg w";m.innerHTML="Promo code "+code+" activated: +"+PROMOS[code]+" "+ST;
+  $("#pCode").value="";say("Promo code "+code+": +"+PROMOS[code]+" "+ST);
+}
+$("#pGo").onclick=usePromo;
+$("#pCode").onkeydown=e=>{if(e.key==="Enter")usePromo()};
+document.querySelector(".ava").onclick=()=>location.href="profile.html";
+pRender();
+(function(){const si=new Image();si.onload=()=>document.documentElement.classList.add("star-img");si.src="images/star.png"})();
+show(slots[0],5);show(slots[1],2);slots.forEach(s=>s.el.classList.add("idle"));setMode("d");
+
+/* ===== Кэшбэк при проигрыше: ставка от 500 ★ — 5% от ставки, меньше 500 ★ — 1% ===== */
+const CB_FROM=500,CB_HI=.05,CB_LO=.01;
+const cbRate=b=>b>=CB_FROM?CB_HI:CB_LO;
+function cashback(bet){const c=Math.floor(bet*cbRate(bet));if(c>0)balance+=c;return c}
+const cbTxt=c=>c>0?" · cashback +"+fmt(c)+" "+ST:"";
+function syncCb(){
+  document.querySelectorAll(".cb").forEach(el=>{
+    const inp=document.getElementById(el.dataset.for),b=Math.floor(+(inp&&inp.value))||0;
+    if(b<1){el.innerHTML="";return}
+    const r=cbRate(b),c=Math.floor(b*r);
+    el.innerHTML="Cashback on loss: <b>"+Math.round(r*100)+"%</b>"+(c>0?" · +"+fmt(c)+" "+ST:"");
+  });
+}
+document.addEventListener("input",syncCb);
+document.addEventListener("click",()=>setTimeout(syncCb,0));
+/* быстрые кнопки ставки для новых игр (свои data-атрибуты, чтобы не пересекаться с Dice) */
+function wireQuick(sel,input,locked){
+  document.querySelectorAll(sel+" button").forEach(b=>b.onclick=()=>{
+    if(locked())return;
+    const v=+input.value||0;
+    if(b.dataset.qa)input.value=Math.max(1,v+ +b.dataset.qa);
+    else{const k=b.dataset.qk;input.value=k==="half"?Math.max(1,Math.floor(v/2)):k==="x2"?Math.max(1,v*2):Math.max(1,balance)}
+    syncCb();
+  });
+}
+const fmtM=x=>String(x);
+const f2=x=>(Math.floor(x*100+1e-9)/100).toFixed(2);
+
+/* ===== Переключатель игр ===== */
+let gameKey="dice";
+function syncGame(on){
+  $("main.game").style.display=on&&gameKey==="dice"?"":"none";
+  $("#plView").style.display=on&&gameKey==="plinko"?"":"none";
+  $("#mnView").style.display=on&&gameKey==="mines"?"":"none";
+  if(on&&gameKey==="plinko")plLayout();
+}
+
+/* ===== Plinko ===== */
+/* множители по числу рядов и риску (l — Low, m — Medium, h — High), возврат около 99% */
+const PLT={
+  8:{l:[5.6,2.1,1.1,1,.5,1,1.1,2.1,5.6],m:[13,3,1.3,.7,.4,.7,1.3,3,13],h:[29,4,1.5,.3,.2,.3,1.5,4,29]},
+  12:{l:[10,3,1.6,1.4,1.1,1,.5,1,1.1,1.4,1.6,3,10],m:[33,11,4,2,1.1,.6,.3,.6,1.1,2,4,11,33],h:[170,24,8.1,2,.7,.2,.2,.2,.7,2,8.1,24,170]},
+  16:{l:[16,9,2,1.4,1.4,1.2,1.1,1,.5,1,1.1,1.2,1.4,1.4,2,9,16],m:[110,41,10,5,3,1.5,1,.5,.3,.5,1,1.5,3,5,10,41,110],h:[1000,130,26,9,4,2,.2,.2,.2,.2,.2,2,4,9,26,130,1000]}
+};
+const PL_FALL=170,PL_SEG=185;
+const plCv=$("#plCv"),plX=plCv.getContext("2d"),plBet=$("#plBet");
+let plRows=12,plRisk="m",plBalls=[],plRaf=0,plHist=[],plFlash={},plG=null;
+const plMults=()=>PLT[plRows][plRisk];
+const plCol=m=>m<1?"239,68,102":m<2?"59,130,246":m<10?"34,197,94":"255,211,107";
+const plLbl=m=>m>=1000?(m/1000)+"K":fmtM(m);
+function plLayout(){
+  const W=plCv.parentNode.clientWidth;if(!W)return;
+  const R=plRows,dx=W/(R+2),dy=Math.min(dx*.9,30),top=26;
+  const pr=Math.max(1.8,Math.min(3.2,dx*.09)),br=Math.max(3.5,Math.min(8,dx*.23));
+  const bh=Math.max(18,Math.min(24,dx*.7)),binY=top+(R-1)*dy+dy*.85,H=Math.ceil(binY+bh+6),dpr=window.devicePixelRatio||1;
+  plCv.width=Math.round(W*dpr);plCv.height=Math.round(H*dpr);plCv.style.height=H+"px";
+  plX.setTransform(dpr,0,0,dpr,0,0);
+  plG={W,H,R,dx,dy,top,pr,br,bh,binY,cx:W/2};
+  plDraw();
+}
+function plPos(b,now){
+  const g=plG,e=now-b.t0,R=b.R;
+  const ny=i=>i<R?g.top+i*g.dy-g.pr-g.br*.8:g.binY+g.bh*.35,nx=i=>g.cx+b.sx[i]*g.dx/2;
+  if(e<PL_FALL){const t=e/PL_FALL,y0=g.top-g.dy*1.2;return[g.cx,y0+(ny(0)-y0)*t*t]}
+  const s=(e-PL_FALL)/PL_SEG,i=Math.min(R-1,Math.floor(s)),t=Math.min(1,s-i);
+  const x0=nx(i),x1=nx(i+1),y0=ny(i),y1=ny(i+1),u=g.dy*1.5;
+  return[x0+(x1-x0)*t,y0-u*t+((y1-y0)+u)*t*t];
+}
+function plDraw(now){
+  const g=plG;if(!g)return;
+  const c=plX;now=now||performance.now();
+  c.clearRect(0,0,g.W,g.H);
+  c.fillStyle="rgba(255,255,255,.78)";
+  for(let i=0;i<g.R;i++)for(let j=0;j<i+3;j++){c.beginPath();c.arc(g.cx+(j-(i+2)/2)*g.dx,g.top+i*g.dy,g.pr,0,6.2832);c.fill()}
+  const fs=Math.max(8,Math.min(12,g.dx*.34)),bw=g.dx-3;
+  c.font="700 "+fs+"px Montserrat,system-ui,sans-serif";c.textAlign="center";c.textBaseline="middle";
+  plMults().forEach((m,k)=>{
+    const fl=plFlash[k]?Math.max(0,1-(now-plFlash[k])/380):0,x=g.cx+(k-g.R/2)*g.dx-bw/2,y=g.binY+fl*4;
+    c.fillStyle="rgba("+plCol(m)+","+(.55+.45*fl)+")";
+    c.beginPath();if(c.roundRect)c.roundRect(x,y,bw,g.bh,6);else c.rect(x,y,bw,g.bh);c.fill();
+    c.fillStyle=m>=10?"#2a1f05":"#fff";c.fillText(plLbl(m),x+bw/2,y+g.bh/2+.5);
+  });
+  plBalls.forEach(b=>{
+    const[x,y]=plPos(b,now),r=g.br,gr=c.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);
+    gr.addColorStop(0,"#fff4cf");gr.addColorStop(1,"#ffb84a");
+    c.shadowColor="rgba(255,200,80,.85)";c.shadowBlur=10;c.fillStyle=gr;
+    c.beginPath();c.arc(x,y,r,0,6.2832);c.fill();c.shadowBlur=0;
+  });
+}
+function plFrame(now){
+  plRaf=0;
+  for(const k in plFlash)if(now-plFlash[k]>400)delete plFlash[k];
+  plDraw(now);
+  if(plBalls.length||Object.keys(plFlash).length)plRaf=requestAnimationFrame(plFrame);
+}
+const plKick=()=>{if(!plRaf)plRaf=requestAnimationFrame(plFrame)};
+function plLock(){const on=plBalls.length>0;document.querySelectorAll("#plRisk .rk,#plRows button").forEach(b=>b.disabled=on)}
+function plDrop(){
+  const bet=Math.floor(+plBet.value);
+  if(!bet||bet<1){say("Enter a valid bet");return}
+  if(bet>balance){say("Not enough stars");return}
+  if(plBalls.length>=12){say("Wait for the balls to land");return}
+  if(!plG)plLayout();
+  balance-=bet;upd();
+  const R=plRows,sx=[0];let k=0;
+  for(let i=0;i<R;i++){const right=Math.random()<.5;if(right)k++;sx.push(sx[i]+(right?1:-1))}
+  const b={t0:performance.now(),R,k,bet,sx,mult:plMults()[k]};
+  plBalls.push(b);plLock();plKick();
+  setTimeout(()=>{
+    const i=plBalls.indexOf(b);if(i>-1)plBalls.splice(i,1);
+    plFlash[b.k]=performance.now();plLand(b);plLock();plKick();
+  },PL_FALL+R*PL_SEG+30);
+}
+function plLand(b){
+  const pay=Math.floor(b.bet*b.mult),net=pay-b.bet;
+  balance+=pay;
+  const cb=net<0?cashback(b.bet):0,cls=net>0?"w":net<0?"l":"d";
+  $("#plRes").className="res"+(cls==="d"?"":" "+cls);
+  $("#plRes").innerHTML="×"+fmtM(b.mult)+" · "+(net>0?"+"+fmt(net):net<0?"−"+fmt(-net):"0")+" "+ST+cbTxt(cb);
+  plHist.unshift({m:b.mult,c:cls});plHist=plHist.slice(0,8);
+  $("#plHist").innerHTML=plHist.map(h=>`<span class="${h.c}">×${fmtM(h.m)}</span>`).join("");
+  rec("Plinko",net>0?1:net<0?-1:0,net+cb,"×"+fmtM(b.mult)+" · "+b.R+" rows"+(cb?" · cashback +"+fmt(cb):""));
+  if(net>0)say("Plinko ×"+fmtM(b.mult)+": +"+fmt(net)+" "+ST);
+  upd();
+}
+document.querySelectorAll("#plRisk .rk").forEach(b=>b.onclick=()=>{
+  if(plBalls.length)return;
+  plRisk=b.dataset.r;
+  document.querySelectorAll("#plRisk .rk").forEach(x=>x.classList.toggle("on",x===b));
+  plDraw();
+});
+document.querySelectorAll("#plRows button").forEach(b=>b.onclick=()=>{
+  if(plBalls.length)return;
+  plRows=+b.dataset.n;
+  document.querySelectorAll("#plRows button").forEach(x=>x.classList.toggle("on",x===b));
+  plLayout();
+});
+wireQuick("#plQ",plBet,()=>false);
+$("#plGo").onclick=plDrop;
+window.addEventListener("resize",()=>{if($("#plView").style.display!=="none")plLayout()});
+
+/* ===== Mines ===== */
+const MN_RTP={3:.9},MN_RTP_DEF=.98; /* payout rate per mine count (3 mines lowered); 1 = fair game */
+const mnGrid=$("#mnGrid"),mnBet=$("#mnBet"),mnGo=$("#mnGo");
+let mnM=3,mn=null,mnHist=[];
+const GEM_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3h11L22 9 12 21 2 9z" fill="#4f93ff"/><path d="M2 9h20M9 3 7 9l5 12M15 3l2 6-5 12" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+const GEM='<img class="gemimg" src="images/diamond.png" alt="" draggable="false" onerror="this.outerHTML=GEM_SVG">';
+const BOMB='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 20v3M2 13h3M19 13h3M5 6l2 2M17 18l2 2M19 6l-2 2M7 18l-2 2" stroke="#ef4466" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="12" cy="13" r="7" fill="#ef4466"/><circle cx="9.5" cy="10.5" r="1.8" fill="rgba(255,255,255,.55)"/></svg>';
+/* множитель после k открытых безопасных клеток при m минах из 25 */
+const mnMul=(m,k)=>{if(k<=0)return 1;let r=MN_RTP[m]||MN_RTP_DEF;for(let i=0;i<k;i++)r*=(25-i)/(25-m-i);return r};
+const mnLive=()=>!!mn&&!mn.over;
+for(let i=0;i<25;i++){
+  const t=document.createElement("button");
+  t.type="button";t.className="tile";t.disabled=true;t.setAttribute("aria-label","Tile "+(i+1));
+  t.onclick=()=>mnPick(i);mnGrid.appendChild(t);
+}
+function mnRender(){
+  const tiles=mnGrid.children;
+  for(let i=0;i<25;i++){
+    const t=tiles[i];let key="e";
+    if(mn){
+      if(mn.open.has(i))key="g";
+      else if(mn.over)key=mn.mines.has(i)?(mn.hit===i?"B":"b"):"G";
+    }
+    if(t.dataset.s!==key){
+      t.dataset.s=key;
+      t.className="tile"+(key==="g"?" gem":key==="G"?" gem dim":key==="b"?" bomb":key==="B"?" bomb hit":"")+(/[gbB]/.test(key)?" new":"");
+      t.innerHTML=key==="e"?"":key==="b"||key==="B"?BOMB:GEM;
+    }
+    t.disabled=!mnLive()||mn.open.has(i);
+  }
+}
+function mnUI(){
+  const live=mnLive(),m=mn?mn.m:mnM,k=mn?mn.open.size:0,safe=25-m;
+  $("#mnMult").textContent="×"+f2(mnMul(m,k));
+  $("#mnNext").textContent=k<safe?"×"+f2(mnMul(m,k+1)):"—";
+  const w=$("#mnWin");
+  if(live){w.className="g";w.innerHTML=fmt(Math.floor(mn.bet*mnMul(m,k)))+" "+ST}
+  else if(mn){w.className=mn.payout>0?"g":"";w.innerHTML=fmt(mn.payout)+" "+ST}
+  else{w.className="";w.textContent="—"}
+  mnGo.disabled=live&&k===0;
+  mnGo.innerHTML=!live?"Start game":k===0?"Pick a tile":"Cash out "+fmt(Math.floor(mn.bet*mnMul(m,k)))+" "+ST;
+  mnBet.disabled=live;
+  document.querySelectorAll("#mnCount button").forEach(b=>b.disabled=live);
+}
+function mnPush(c,t){
+  mnHist.unshift({c,t});mnHist=mnHist.slice(0,8);
+  $("#mnHist").innerHTML=mnHist.map(h=>`<span class="${h.c}">${h.t}</span>`).join("");
+}
+function mnStart(){
+  const bet=Math.floor(+mnBet.value);
+  if(!bet||bet<1){say("Enter a valid bet");return}
+  if(bet>balance){say("Not enough stars");return}
+  balance-=bet;upd();
+  const idx=[...Array(25).keys()];
+  for(let i=24;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  mn={bet,m:mnM,mines:new Set(idx.slice(0,mnM)),open:new Set(),over:false,hit:-1,payout:0};
+  $("#mnRes").className="res";$("#mnRes").textContent="Find the gems";
+  mnRender();mnUI();
+}
+function mnPick(i){
+  if(!mnLive()||mn.open.has(i))return;
+  if(mn.mines.has(i)){mnLose(i);return}
+  mn.open.add(i);
+  if(mn.open.size===25-mn.m){mnCash();return}
+  mnRender();mnUI();
+}
+function mnLose(i){
+  const m=mn,k=m.open.size;
+  m.over=true;m.hit=i;m.payout=0;
+  const cb=cashback(m.bet);
+  $("#mnRes").className="res l";
+  $("#mnRes").innerHTML="Mine! −"+fmt(m.bet)+" "+ST+cbTxt(cb);
+  mnPush("l","×0");
+  rec("Mines",-1,cb-m.bet,m.m+" mines · opened "+k+(cb?" · cashback +"+fmt(cb):""));
+  say("Mine! −"+fmt(m.bet)+" "+ST+(cb?", cashback +"+fmt(cb):""));
+  upd();mnRender();mnUI();
+}
+function mnCash(){
+  const m=mn,k=m.open.size,mul=mnMul(m.m,k),pay=Math.floor(m.bet*mul),net=pay-m.bet;
+  m.over=true;m.hit=-1;m.payout=pay;balance+=pay;
+  $("#mnRes").className="res"+(net>0?" w":net<0?" l":"");
+  $("#mnRes").innerHTML="Cashed out ×"+f2(mul)+" · "+(net>0?"+"+fmt(net):net<0?"−"+fmt(-net):"0")+" "+ST;
+  mnPush(net>0?"w":net<0?"l":"d","×"+f2(mul));
+  rec("Mines",net>0?1:net<0?-1:0,net,m.m+" mines · opened "+k+" · ×"+f2(mul));
+  if(net>0)say("Win: +"+fmt(net)+" "+ST);
+  upd();mnRender();mnUI();
+}
+mnGo.onclick=()=>{if(mnLive())mnCash();else mnStart()};
+document.querySelectorAll("#mnCount button").forEach(b=>b.onclick=()=>{
+  if(mnLive())return;
+  mnM=+b.dataset.n;
+  document.querySelectorAll("#mnCount button").forEach(x=>x.classList.toggle("on",x===b));
+  mn=null;mnRender();mnUI();
+});
+wireQuick("#mnQ",mnBet,mnLive);
+mnRender();mnUI();syncCb();upd();
+showView(document.body.dataset.startView||"dice");
+</script>
+</body>
+</html>
